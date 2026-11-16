@@ -1,15 +1,23 @@
+
 import pg from 'pg';
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 
 const { Pool } = pg;
 
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL belum dikonfigurasi.');
+}
+
+const hasSslMode = /[?&]sslmode=/i.test(databaseUrl);
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('sslmode=require')
-    ? { rejectUnauthorized: false }
-    : false,
+  connectionString: databaseUrl,
+  ...(hasSslMode ? {} : { ssl: false }),
 });
+
 
 export async function initializeDatabase() {
   const client = await pool.connect();
